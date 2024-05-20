@@ -13,7 +13,6 @@ Run CC method at prime p with precision N and ramification e.
 /* importer load"coleman.m";*/
 
 load"coleman.m";
-load"colemanextensions.m";
 parameters := AssociativeArray();
 parameters["height"] := 1000;
 parameters["precision"] := 10;
@@ -29,7 +28,7 @@ function quartic_points(f, parameters)
     return  points;
 end function;
 
-function chabauty_quartic(f, g, p, parameters)
+function chabauty_quartic(f, p, parameters, support)
     prec := parameters["precision"];
     e := parameters["e"];
     precision_inc := parameters["precision_inc"];
@@ -48,54 +47,25 @@ function chabauty_quartic(f, g, p, parameters)
     for prec in precs do
         data := coleman_data(f, p, prec);
         for e in e_vals do
-         if Degree(g) eq 1 then
+          if #support eq 2 then
             Qpoints := Q_points(data, parameters["height"]);
              try
                     L,v := effective_chabauty(data:Qpoints:=Qpoints, e:=e);
                     chabauty_data := [*L, Qpoints, p, prec, e*];
-                    point_coords := [Qpoints[i]`x : i in [1..#Qpoints]];
-                    candidates := [L[i]`x : i in [1..#L]];
-                    b_values := [L[i]`b : i in [1..#L]];
-                    if  #point_coords eq #candidates then
-                        return true, chabauty_data, #v,  [], [];
-                  else
-                        for xP in point_coords do
-                        for a in candidates do
-                        N := Min(Precision(xP),Precision(a));
-                              if N gt 0 then
-                                  x_point := ChangePrecision(xP,N);
-                                  x_cand := ChangePrecision(a,N);
-                                  if Integers()!x_point eq Integers()!x_cand then
-                                     idx := Index(candidates, a);
-                                     Remove(~candidates, idx);
-                                     Remove(~b_values, idx);
-                                  end if;
-                             else
-                                if Integers()!xP eq Integers()!a then
-                                   idx := Index(candidates, a);
-                                   Remove(~candidates, idx);
-                                   Remove(~b_values, idx);
-                              end if;
-                        end if;
-                  end for;
-               end for;
-            return chabauty_data, #v, candidates, b_values;
-       end if;
+                    return true, chabauty_data;
                 catch err
                     print(err`Object);
                 end try;
-                else
-                Qpoints := Q_points(data, parameters["height"]); // supp(div(g)) not defined over Q
-                Qdivs := Q_divs(data, parameters["height"], g);
+            else
+                Qpoints := support; // supp(div(g)) not defined over Q
                 try
-                    L,v := effective_chabauty_with_Qdiv(data:Qpoints:=Qdivs, e:=e);
+                    L,v := effective_chabauty(data:Qpoints:=Qpoints, e:=e);
                     chabauty_data := [*L, Qpoints, p, prec, e*];
-                    return true, chabauty_data, #v;
+                    return true, chabauty_data;
                 catch err
                     print(err`Object);
                 end try;
             end if;
-            
         end for;
     end for;
     return false, [];
