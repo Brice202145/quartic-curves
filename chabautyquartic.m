@@ -13,6 +13,7 @@ Run CC method at prime p with precision N and ramification e.
 /* importer load"coleman.m";*/
 
 load"coleman.m";
+load"chabautyextension.m";
 parameters := AssociativeArray();
 parameters["height"] := 1000;
 parameters["precision"] := 10;
@@ -27,6 +28,7 @@ function quartic_points(f, parameters)
     points := PointSearch(C, parameters["height"]);
     return  points;
 end function;
+
 
 function chabauty_quartic(f, p, parameters, support)
     prec := parameters["precision"];
@@ -57,9 +59,10 @@ function chabauty_quartic(f, p, parameters, support)
                     print(err`Object);
                 end try;
             else
-                Qpoints := support; // supp(div(g)) not defined over Q
+                Qdiv := support;
+                   // supp(D) not defined over Q
                 try
-                    L,v := effective_chabauty(data:Qpoints:=Qpoints, e:=e);
+                    L,v := effective_chabauty_div(data:Qpoints:=Qdiv, e:=e);
                     chabauty_data := [*L, Qpoints, p, prec, e*];
                     return true, chabauty_data;
                 catch err
